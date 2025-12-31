@@ -27,7 +27,9 @@ func (r *fakeRepo) Create(t Task) (Task, error) {
 }
 
 func (r *fakeRepo) List() []Task {
-	return r.tasks
+	tasks := r.tasks
+	
+	return tasks
 }
 
 func (r *fakeRepo) GetByID(id int) (Task, error) {
@@ -40,6 +42,20 @@ func (r *fakeRepo) GetByID(id int) (Task, error) {
 
 	return Task{}, ErrTaskNotFound
 }
+
+func (r *fakeRepo) UpdateTask(t Task) (Task, error) {
+
+	for idx, task := range(r.tasks) {
+		if task.ID == t.ID {
+			r.tasks[idx] = t
+
+			return t, nil
+		}
+	}
+
+	return Task{}, ErrTaskNotFound
+}
+
 
 func TestCreateTaskEmptyTitle(t *testing.T) {
 	input := CreateTaskInput{
@@ -162,4 +178,38 @@ func TestGetByID(t *testing.T) {
 	if task.Title != "first" {
 		t.Fatalf("the returned task is incorrect")
 	}
+}
+
+func TestUpdateTask(t *testing.T) {
+
+	r := NewFakeRepo()
+	s := NewService(r)
+
+	// Check missing task
+	_, err := s.UpdateTask(1, UpdateTaskInput{ IsDone: true})
+
+	if err == nil {
+		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
+	}
+
+	if !errors.Is(err, ErrTaskNotFound) {
+		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
+	}
+
+	// Check existing task
+	r.Create(Task{})
+
+	_, err = s.UpdateTask(1, UpdateTaskInput{ IsDone: true})
+
+	if err != nil {
+		t.Fatalf("expected no errors, got %v", err)
+	}
+
+	task,_ := s.GetByID(1)
+
+	if !task.IsDone {
+		t.Fatalf("task was not updated")
+	}
+	
+
 }

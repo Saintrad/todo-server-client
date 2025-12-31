@@ -8,7 +8,7 @@ type Service struct {
 	repo TaskRepo
 }
 
-func NewService(r TaskRepo) Service{
+func NewService(r TaskRepo) Service {
 	return Service{repo: r}
 }
 
@@ -38,6 +38,20 @@ func (s Service) ListTask(i ListTaskInput) []Task {
 }
 
 func (s Service) GetByID(id int) (Task, error) {
-	
+
 	return s.repo.GetByID(id)
+}
+
+func (s Service) UpdateTask(id int, i UpdateTaskInput) (Task, error) {
+
+	task, err := s.repo.GetByID(id)
+
+	if err != nil {
+		return Task{}, err
+	}
+
+	task.IsDone = i.IsDone
+	task.UpdatedAt = time.Now()
+
+	return s.repo.UpdateTask(task)
 }

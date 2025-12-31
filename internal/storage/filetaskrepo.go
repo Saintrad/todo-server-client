@@ -131,12 +131,12 @@ func (r *FileTaskRepo) saveLocked() error {
 	return nil
 }
 
-func (r *FileTaskRepo) List() ([]todo.Task) {
+func (r *FileTaskRepo) List() []todo.Task {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	list := make([]todo.Task, 0)
 
-	for _, task := range(r.state.Tasks){
+	for _, task := range r.state.Tasks {
 
 		list = append(list, task)
 	}
@@ -144,16 +144,53 @@ func (r *FileTaskRepo) List() ([]todo.Task) {
 	return list
 }
 
-
 func (r *FileTaskRepo) GetByID(id int) (todo.Task, error) {
-	
+
 	tasks := r.state.Tasks
 
-	for _, task := range(tasks) {
+	for _, task := range tasks {
 		if task.ID == id {
 			return task, nil
 		}
 	}
 
 	return todo.Task{}, todo.ErrTaskNotFound
+}
+
+func (r *FileTaskRepo) UpdateTask(t todo.Task) (todo.Task, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var oldIdx int
+	var oldTask todo.Task
+	found := false
+
+	// Find the task by ID
+	for idx, task := range r.state.Tasks {
+		if task.ID == t.ID {
+			oldTask = task
+			oldIdx = idx
+			found = true
+			r.state.Tasks[idx] = t
+
+			break
+		}
+	}
+
+	if !found {
+
+		return todo.Task{}, todo.ErrTaskNotFound
+	}
+
+	// Save the state
+	err := r.saveLocked()
+
+	// If save fails, revert the update
+	if err != nil {
+		r.state.Tasks[oldIdx] = oldTask
+
+		return todo.Task{}, err
+	}
+
+	return t, nil
 }

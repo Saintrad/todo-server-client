@@ -11,3 +11,7 @@ type CreateTaskInput struct{
 type ListTaskInput struct {
 	
 }
+
+type UpdateTaskInput struct {
+	IsDone bool
+}
