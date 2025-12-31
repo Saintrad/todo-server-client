@@ -28,13 +28,13 @@ func (r *fakeRepo) Create(t Task) (Task, error) {
 
 func (r *fakeRepo) List() []Task {
 	tasks := r.tasks
-	
+
 	return tasks
 }
 
 func (r *fakeRepo) GetByID(id int) (Task, error) {
 
-	for _, task := range(r.tasks) {
+	for _, task := range r.tasks {
 		if task.ID == id {
 			return task, nil
 		}
@@ -43,9 +43,9 @@ func (r *fakeRepo) GetByID(id int) (Task, error) {
 	return Task{}, ErrTaskNotFound
 }
 
-func (r *fakeRepo) UpdateTask(t Task) (Task, error) {
+func (r *fakeRepo) Update(t Task) (Task, error) {
 
-	for idx, task := range(r.tasks) {
+	for idx, task := range r.tasks {
 		if task.ID == t.ID {
 			r.tasks[idx] = t
 
@@ -56,6 +56,18 @@ func (r *fakeRepo) UpdateTask(t Task) (Task, error) {
 	return Task{}, ErrTaskNotFound
 }
 
+func (r *fakeRepo) Delete(id int) (Task, error) {
+
+	for idx, task := range r.tasks {
+		if task.ID == id {
+			r.tasks = append(r.tasks[:idx], r.tasks[idx+1:]...)
+
+			return task, nil
+		}
+	}
+
+	return Task{}, ErrTaskNotFound
+}
 
 func TestCreateTaskEmptyTitle(t *testing.T) {
 	input := CreateTaskInput{
@@ -108,7 +120,7 @@ func TestCreateTaskOkTask(t *testing.T) {
 	}
 
 	found := false
-	for _, task := range(r.tasks) {
+	for _, task := range r.tasks {
 		if task.ID == createdTask.ID {
 			found = true
 		}
@@ -155,14 +167,13 @@ func TestGetByID(t *testing.T) {
 	// Check missing ID
 	_, err := taskService.GetByID(2)
 
-
 	if err == nil {
-		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err )
+		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
 	}
 
-	if  !errors.Is(err, ErrTaskNotFound) {
+	if !errors.Is(err, ErrTaskNotFound) {
 		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
-		}
+	}
 
 	// Check existing ID
 	task, err := taskService.GetByID(1)
@@ -186,7 +197,7 @@ func TestUpdateTask(t *testing.T) {
 	s := NewService(r)
 
 	// Check missing task
-	_, err := s.UpdateTask(1, UpdateTaskInput{ IsDone: true})
+	_, err := s.UpdateTask(1, UpdateTaskInput{IsDone: true})
 
 	if err == nil {
 		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
@@ -200,8 +211,8 @@ func TestUpdateTask(t *testing.T) {
 	r.Create(Task{})
 
 	input := UpdateTaskInput{
-		Title: "changed",
-		IsDone: true,
+		Title:    "changed",
+		IsDone:   true,
 		Category: strPtr("changed"),
 	}
 	_, err = s.UpdateTask(1, input)
@@ -209,7 +220,7 @@ func TestUpdateTask(t *testing.T) {
 		t.Fatalf("expected no errors, got %v", err)
 	}
 
-	task,_ := s.GetByID(1)
+	task, _ := s.GetByID(1)
 
 	if !task.IsDone {
 		t.Fatalf("task done status was not updated")
@@ -218,9 +229,49 @@ func TestUpdateTask(t *testing.T) {
 	if task.Title != input.Title {
 		t.Fatalf("task title was not updated")
 	}
-	
+
 	if task.Category != input.Category {
 		t.Fatalf("task category was not updated")
+	}
+
+}
+
+func TestDeleteTask(t *testing.T) {
+
+	r := NewFakeRepo()
+	s := NewService(r)
+
+	// Check delete missing task
+	_, err := s.Delete(1)
+
+	if err == nil {
+		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+	}
+
+	if !errors.Is(err, ErrTaskNotFound) {
+		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+	}
+
+	//Check delete existing task
+	r.Create(Task{
+		Title: "test",
+	})
+
+	_, err = s.Delete(1)
+
+	if err != nil {
+		t.Fatalf("expected no errors, got %v", err)
+	}
+
+	// Check if the task is deleted
+	_, err = r.GetByID(1)
+
+	if err == nil {
+		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+	}
+
+	if !errors.Is(err, ErrTaskNotFound) {
+		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
 	}
 
 }

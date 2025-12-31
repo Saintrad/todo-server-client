@@ -67,5 +67,17 @@ func (s Service) UpdateTask(id int, i UpdateTaskInput) (Task, error) {
 	task.IsDone = i.IsDone
 	task.UpdatedAt = time.Now()
 
-	return s.repo.UpdateTask(task)
+	return s.repo.Update(task)
+}
+
+func (s Service) Delete(id int) (Task, error) {
+
+	_, err := s.repo.GetByID(id)
+
+	if err != nil {
+
+		return Task{}, err
+	}
+
+	return s.repo.Delete(id)
 }

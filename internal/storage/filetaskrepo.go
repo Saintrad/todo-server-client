@@ -22,8 +22,6 @@ type FileTaskRepo struct {
 	state    fileState
 }
 
-var _ todo.TaskRepo = (*FileTaskRepo)(nil)
-
 // NewFileTaskRepo loads state from file if present, otherwise starts empty.
 func NewFileTaskRepo(path string) (*FileTaskRepo, error) {
 	r := &FileTaskRepo{
@@ -157,7 +155,7 @@ func (r *FileTaskRepo) GetByID(id int) (todo.Task, error) {
 	return todo.Task{}, todo.ErrTaskNotFound
 }
 
-func (r *FileTaskRepo) UpdateTask(t todo.Task) (todo.Task, error) {
+func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -193,4 +191,35 @@ func (r *FileTaskRepo) UpdateTask(t todo.Task) (todo.Task, error) {
 	}
 
 	return t, nil
+}
+
+func (r *FileTaskRepo) Delete(id int) (todo.Task, error) {
+
+	var oldTask todo.Task
+	found := false
+
+	for idx, task := range r.state.Tasks {
+		if task.ID == id {
+			oldTask = task
+			r.state.Tasks = append(r.state.Tasks[:idx], r.state.Tasks[idx+1:]...)
+			found = true
+
+			break
+		}
+	}
+
+	if !found {
+
+		return todo.Task{}, todo.ErrTaskNotFound
+	}
+
+	err := r.saveLocked()
+
+	if err != nil {
+		r.state.Tasks = append(r.state.Tasks, oldTask)
+
+		return todo.Task{}, err
+	}
+
+	return oldTask, nil
 }

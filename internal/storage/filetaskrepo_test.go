@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -145,5 +146,97 @@ func TestFileRepo_ExistingFile_LoadsStateAndContinuesIDs(t *testing.T) {
 
 	if repo.state.NextID != 7 {
 		t.Fatalf("expected next ID 7, got %d", repo.state.NextID)
+	}
+}
+
+func TestUpdateTask(t *testing.T) {
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "tasks.json")
+
+	repo, nErr := NewFileTaskRepo(path)
+	if nErr != nil {
+		t.Fatalf("expected no error, got %v", nErr)
+	}
+
+	inputTask := todo.Task{
+		ID:       1,
+		Title:    "changed",
+		Category: strPtr("changed"),
+	}
+	// Check updating missing tasks
+	_, err := repo.Update(inputTask)
+
+	if err == nil {
+		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	}
+
+	if !errors.Is(err, todo.ErrTaskNotFound) {
+		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	}
+
+	// Check updating exisiting task
+	_, cErr := repo.Create(todo.Task{})
+	if cErr != nil {
+		t.Fatalf("expected no errors, got %v", cErr)
+	}
+
+	_, err = repo.Update(inputTask)
+	task, _ := repo.GetByID(1)
+
+	if err != nil {
+		t.Fatalf("expected no errors, got %v", err)
+	}
+
+	if task.Title != inputTask.Title {
+		t.Fatalf("task title was not updated")
+	}
+
+	if task.Category != inputTask.Category {
+		t.Fatalf("task category was not updated")
+	}
+
+}
+
+func TestDeleteTask(t *testing.T) {
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "tasks.json")
+
+	repo, nErr := NewFileTaskRepo(path)
+	if nErr != nil {
+		t.Fatalf("expected no error, got %v", nErr)
+	}
+
+	// Check delete missing task
+	_, err := repo.Delete(1)
+
+	if err == nil {
+		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	}
+
+	if !errors.Is(err, todo.ErrTaskNotFound) {
+		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	}
+
+	// Check delete existing task
+	_, cErr := repo.Create(todo.Task{})
+	if cErr != nil {
+		t.Fatalf("expected no errors, got %v", cErr)
+	}
+
+	_, err = repo.Delete(1)
+	if err != nil {
+		t.Fatalf("expected no errors, got %v", err)
+	}
+
+	_, err = repo.GetByID(1)
+
+	if err == nil {
+		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	}
+
+	if !errors.Is(err, todo.ErrTaskNotFound) {
+		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
 	}
 }
