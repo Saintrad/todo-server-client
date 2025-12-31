@@ -7,3 +7,7 @@ type CreateTaskInput struct{
 	Category *string
 	DueDate *time.Time
 }
+
+type ListTaskInput struct {
+	
+}

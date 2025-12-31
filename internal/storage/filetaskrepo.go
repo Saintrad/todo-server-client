@@ -12,7 +12,7 @@ import (
 )
 
 type fileState struct {
-	NextID int        `json:"next_id"`
+	NextID int         `json:"next_id"`
 	Tasks  []todo.Task `json:"tasks"`
 }
 
@@ -129,4 +129,31 @@ func (r *FileTaskRepo) saveLocked() error {
 		return err
 	}
 	return nil
+}
+
+func (r *FileTaskRepo) List() ([]todo.Task) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	list := make([]todo.Task, 0)
+
+	for _, task := range(r.state.Tasks){
+
+		list = append(list, task)
+	}
+
+	return list
+}
+
+
+func (r *FileTaskRepo) GetByID(id int) (todo.Task, error) {
+	
+	tasks := r.state.Tasks
+
+	for _, task := range(tasks) {
+		if task.ID == id {
+			return task, nil
+		}
+	}
+
+	return todo.Task{}, todo.ErrTaskNotFound
 }
