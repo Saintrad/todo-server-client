@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+func strPtr(s string) *string {
+	return &s
+}
+
 type Service struct {
 	repo TaskRepo
 }
@@ -48,6 +52,16 @@ func (s Service) UpdateTask(id int, i UpdateTaskInput) (Task, error) {
 
 	if err != nil {
 		return Task{}, err
+	}
+
+	if i.Title != "" {
+		task.Title = i.Title
+	}
+	if i.DueDate != nil {
+		task.DueDate = i.DueDate
+	}
+	if i.Category != nil {
+		task.Category = i.Category
 	}
 
 	task.IsDone = i.IsDone

@@ -199,8 +199,12 @@ func TestUpdateTask(t *testing.T) {
 	// Check existing task
 	r.Create(Task{})
 
-	_, err = s.UpdateTask(1, UpdateTaskInput{ IsDone: true})
-
+	input := UpdateTaskInput{
+		Title: "changed",
+		IsDone: true,
+		Category: strPtr("changed"),
+	}
+	_, err = s.UpdateTask(1, input)
 	if err != nil {
 		t.Fatalf("expected no errors, got %v", err)
 	}
@@ -208,8 +212,15 @@ func TestUpdateTask(t *testing.T) {
 	task,_ := s.GetByID(1)
 
 	if !task.IsDone {
-		t.Fatalf("task was not updated")
+		t.Fatalf("task done status was not updated")
+	}
+
+	if task.Title != input.Title {
+		t.Fatalf("task title was not updated")
 	}
 	
+	if task.Category != input.Category {
+		t.Fatalf("task category was not updated")
+	}
 
 }

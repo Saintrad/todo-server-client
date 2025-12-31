@@ -13,5 +13,8 @@ type ListTaskInput struct {
 }
 
 type UpdateTaskInput struct {
+	Title string
+	Category *string
+	DueDate *time.Time
 	IsDone bool
 }
