@@ -36,7 +36,7 @@ func (s Service) CreateTask(i CreateTaskInput) (Task, error) {
 	return s.repo.Create(newTask)
 }
 
-func (s Service) ListTask(i ListTaskInput) []Task {
+func (s Service) ListTask() ([]Task, error) {
 
 	return s.repo.List()
 }
@@ -54,8 +54,8 @@ func (s Service) UpdateTask(id int, i UpdateTaskInput) (Task, error) {
 		return Task{}, err
 	}
 
-	if i.Title != "" {
-		task.Title = i.Title
+	if i.Title != nil {
+		task.Title = *i.Title
 	}
 	if i.DueDate != nil {
 		task.DueDate = i.DueDate
@@ -64,7 +64,10 @@ func (s Service) UpdateTask(id int, i UpdateTaskInput) (Task, error) {
 		task.Category = i.Category
 	}
 
-	task.IsDone = i.IsDone
+	if i.IsDone != nil {
+		task.IsDone = *i.IsDone
+	}
+
 	task.UpdatedAt = time.Now()
 
 	return s.repo.Update(task)

@@ -8,13 +8,10 @@ type CreateTaskInput struct{
 	DueDate *time.Time
 }
 
-type ListTaskInput struct {
-	
-}
 
 type UpdateTaskInput struct {
-	Title string
+	Title *string
 	Category *string
 	DueDate *time.Time
-	IsDone bool
+	IsDone *bool
 }

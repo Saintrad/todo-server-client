@@ -26,10 +26,10 @@ func (r *fakeRepo) Create(t Task) (Task, error) {
 	return t, nil
 }
 
-func (r *fakeRepo) List() []Task {
+func (r *fakeRepo) List() ([]Task, error) {
 	tasks := r.tasks
 
-	return tasks
+	return tasks, nil
 }
 
 func (r *fakeRepo) GetByID(id int) (Task, error) {
@@ -136,9 +136,12 @@ func TestCreateTaskOkTask(t *testing.T) {
 func TestListTask(t *testing.T) {
 	r := NewFakeRepo()
 	taskService := NewService(r)
-	input := ListTaskInput{}
 
-	tasks := taskService.ListTask(input)
+	tasks, err := taskService.ListTask()
+
+	if err != nil {
+		t.Fatalf("expected no errors, got %v", err)
+	}
 
 	// Check if function works with no tasks
 	if len(tasks) != len(r.tasks) {
@@ -149,7 +152,11 @@ func TestListTask(t *testing.T) {
 		Title: "first",
 	})
 
-	tasks = taskService.ListTask(input)
+	tasks, err = taskService.ListTask()
+
+	if err != nil {
+		t.Fatalf("expected no errors, got %v", err)
+	}
 
 	// Check if function works with tasks
 	if len(tasks) != len(r.tasks) {
@@ -195,9 +202,10 @@ func TestUpdateTask(t *testing.T) {
 
 	r := NewFakeRepo()
 	s := NewService(r)
+	done := true
 
 	// Check missing task
-	_, err := s.UpdateTask(1, UpdateTaskInput{IsDone: true})
+	_, err := s.UpdateTask(1, UpdateTaskInput{IsDone: &done})
 
 	if err == nil {
 		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
@@ -210,9 +218,10 @@ func TestUpdateTask(t *testing.T) {
 	// Check existing task
 	r.Create(Task{})
 
+	
 	input := UpdateTaskInput{
-		Title:    "changed",
-		IsDone:   true,
+		Title:    strPtr("changed"),
+		IsDone:   &done,
 		Category: strPtr("changed"),
 	}
 	_, err = s.UpdateTask(1, input)
@@ -226,7 +235,7 @@ func TestUpdateTask(t *testing.T) {
 		t.Fatalf("task done status was not updated")
 	}
 
-	if task.Title != input.Title {
+	if task.Title != *input.Title {
 		t.Fatalf("task title was not updated")
 	}
 

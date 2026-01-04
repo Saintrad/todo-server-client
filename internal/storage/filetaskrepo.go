@@ -129,7 +129,7 @@ func (r *FileTaskRepo) saveLocked() error {
 	return nil
 }
 
-func (r *FileTaskRepo) List() []todo.Task {
+func (r *FileTaskRepo) List() ([]todo.Task, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	list := make([]todo.Task, 0)
@@ -139,7 +139,7 @@ func (r *FileTaskRepo) List() []todo.Task {
 		list = append(list, task)
 	}
 
-	return list
+	return list, nil
 }
 
 func (r *FileTaskRepo) GetByID(id int) (todo.Task, error) {
