@@ -79,7 +79,7 @@ func computeNextID(tasks []todo.Task) int {
 }
 
 // Create assigns an ID, stores the task, and persists to disk.
-func (r *FileTaskRepo) Create(task todo.Task) (todo.Task, error) {
+func (r *FileTaskRepo) Create(task todo.Task) (todo.Task, *todo.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -89,7 +89,7 @@ func (r *FileTaskRepo) Create(task todo.Task) (todo.Task, error) {
 	r.state.Tasks = append(r.state.Tasks, task)
 
 	if err := r.saveLocked(); err != nil {
-		return todo.Task{}, err
+		return todo.Task{}, todo.Internal("server failed to create task", err)
 	}
 	return task, nil
 }
@@ -99,14 +99,14 @@ func (r *FileTaskRepo) Create(task todo.Task) (todo.Task, error) {
 func (r *FileTaskRepo) saveLocked() error {
 	b, err := json.MarshalIndent(r.state, "", "  ")
 	if err != nil {
-		return err
+		return todo.Internal("server failed to delete task", err)
 	}
 	b = append(b, '\n')
 
 	dir := filepath.Dir(r.filePath)
 	tmp, err := os.CreateTemp(dir, "tasks-*.tmp")
 	if err != nil {
-		return err
+		return todo.Internal("server failed to delete task", err)
 	}
 
 	tmpName := tmp.Name()
@@ -116,20 +116,20 @@ func (r *FileTaskRepo) saveLocked() error {
 	}()
 
 	if _, err := tmp.Write(b); err != nil {
-		return err
+		return todo.Internal("server failed to delete task", err)
 	}
 	if err := tmp.Close(); err != nil {
-		return err
+		return todo.Internal("server failed to delete task", err)
 	}
 
 	// Atomic replace on most OS/filesystems when same directory
 	if err := os.Rename(tmpName, r.filePath); err != nil {
-		return err
+		return todo.Internal("server failed to save task", err)
 	}
 	return nil
 }
 
-func (r *FileTaskRepo) List() ([]todo.Task, error) {
+func (r *FileTaskRepo) List() ([]todo.Task, *todo.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	list := make([]todo.Task, 0)
@@ -142,7 +142,7 @@ func (r *FileTaskRepo) List() ([]todo.Task, error) {
 	return list, nil
 }
 
-func (r *FileTaskRepo) GetByID(id int) (todo.Task, error) {
+func (r *FileTaskRepo) GetByID(id int) (todo.Task, *todo.AppError) {
 
 	tasks := r.state.Tasks
 
@@ -152,10 +152,10 @@ func (r *FileTaskRepo) GetByID(id int) (todo.Task, error) {
 		}
 	}
 
-	return todo.Task{}, todo.ErrTaskNotFound
+	return todo.Task{}, todo.NotFound("task not found", nil)
 }
 
-func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, error) {
+func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, *todo.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -177,7 +177,7 @@ func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, error) {
 
 	if !found {
 
-		return todo.Task{}, todo.ErrTaskNotFound
+		return todo.Task{}, todo.NotFound("task not found", nil)
 	}
 
 	// Save the state
@@ -187,13 +187,13 @@ func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, error) {
 	if err != nil {
 		r.state.Tasks[oldIdx] = oldTask
 
-		return todo.Task{}, err
+		return todo.Task{}, todo.Internal("server failed to update task", err)
 	}
 
 	return t, nil
 }
 
-func (r *FileTaskRepo) Delete(id int) (todo.Task, error) {
+func (r *FileTaskRepo) Delete(id int) (todo.Task, *todo.AppError) {
 
 	var oldTask todo.Task
 	found := false
@@ -210,7 +210,7 @@ func (r *FileTaskRepo) Delete(id int) (todo.Task, error) {
 
 	if !found {
 
-		return todo.Task{}, todo.ErrTaskNotFound
+		return todo.Task{}, todo.NotFound("task not found", nil)
 	}
 
 	err := r.saveLocked()
@@ -218,7 +218,7 @@ func (r *FileTaskRepo) Delete(id int) (todo.Task, error) {
 	if err != nil {
 		r.state.Tasks = append(r.state.Tasks, oldTask)
 
-		return todo.Task{}, err
+		return todo.Task{}, todo.Internal("server failed to delete task", err)
 	}
 
 	return oldTask, nil

@@ -2,6 +2,7 @@ package todo
 
 import (
 	"time"
+
 )
 
 func strPtr(s string) *string {
@@ -16,11 +17,11 @@ func NewService(r TaskRepo) Service {
 	return Service{repo: r}
 }
 
-func (s Service) CreateTask(i CreateTaskInput) (Task, error) {
+func (s Service) CreateTask(i CreateTaskInput) (Task, *AppError) {
 
 	// Check title not to be empty
 	if i.Title == "" {
-		return Task{}, ErrEmptyTitle
+		return Task{}, InvalidInput("title must not be empty", nil)
 	}
 
 	//Create a new task and initialize the attributes
@@ -36,17 +37,17 @@ func (s Service) CreateTask(i CreateTaskInput) (Task, error) {
 	return s.repo.Create(newTask)
 }
 
-func (s Service) ListTask() ([]Task, error) {
+func (s Service) ListTask() ([]Task, *AppError) {
 
 	return s.repo.List()
 }
 
-func (s Service) GetByID(id int) (Task, error) {
+func (s Service) GetByID(id int) (Task, *AppError) {
 
 	return s.repo.GetByID(id)
 }
 
-func (s Service) UpdateTask(id int, i UpdateTaskInput) (Task, error) {
+func (s Service) UpdateTask(id int,i UpdateTaskInput) (Task, *AppError) {
 
 	task, err := s.repo.GetByID(id)
 
@@ -73,13 +74,13 @@ func (s Service) UpdateTask(id int, i UpdateTaskInput) (Task, error) {
 	return s.repo.Update(task)
 }
 
-func (s Service) Delete(id int) (Task, error) {
+func (s Service) Delete(id int) (Task, *AppError) {
 
 	_, err := s.repo.GetByID(id)
 
 	if err != nil {
 
-		return Task{}, err
+		return Task{}, NotFound("task not found", err)
 	}
 
 	return s.repo.Delete(id)

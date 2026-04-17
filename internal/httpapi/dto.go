@@ -31,10 +31,6 @@ type TaskResponse struct {
 	UpdatedAt time.Time  `json:"updated_at,omitempty"`
 }
 
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
-
 // ---------- Mapping helpers (DTO -> domain) ----------
 
 func (r CreateTaskRequest) ToDomain() todo.CreateTaskInput {

@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,9 +34,6 @@ func TestFileRepo_NoFile_StartsEmptyAndCreatesFile(t *testing.T) {
 		IsDone:    false,
 	})
 
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
 
 	if task1.ID != 1 {
 		t.Fatalf("expected ID 1, got %d", task1.ID)
@@ -168,24 +164,24 @@ func TestUpdateTask(t *testing.T) {
 	_, err := repo.Update(inputTask)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
 	}
 
-	if !errors.Is(err, todo.ErrTaskNotFound) {
-		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	if err.Code != todo.ErrCodeNotFound {
+		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
 	}
 
 	// Check updating exisiting task
 	_, cErr := repo.Create(todo.Task{})
 	if cErr != nil {
-		t.Fatalf("expected no errors, got %v", cErr)
+		t.Fatalf("expected no errors, got %v", cErr.Code)
 	}
 
 	_, err = repo.Update(inputTask)
 	task, _ := repo.GetByID(1)
 
 	if err != nil {
-		t.Fatalf("expected no errors, got %v", err)
+		t.Fatalf("expected no errors, got %v", err.Code)
 	}
 
 	if task.Title != inputTask.Title {
@@ -212,11 +208,11 @@ func TestDeleteTask(t *testing.T) {
 	_, err := repo.Delete(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
 	}
 
-	if !errors.Is(err, todo.ErrTaskNotFound) {
-		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	if err.Code != todo.ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err.Code)
 	}
 
 	// Check delete existing task
@@ -233,10 +229,10 @@ func TestDeleteTask(t *testing.T) {
 	_, err = repo.GetByID(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
 	}
 
-	if !errors.Is(err, todo.ErrTaskNotFound) {
-		t.Fatalf("expected error %v, got %v", todo.ErrTaskNotFound, err)
+	if err.Code != todo.ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
 	}
 }

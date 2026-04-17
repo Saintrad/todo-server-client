@@ -1,7 +1,6 @@
 package todo
 
 import (
-	"errors"
 	"testing"
 )
 
@@ -17,7 +16,7 @@ func NewFakeRepo() *fakeRepo {
 		nextID: 1,
 	}
 }
-func (r *fakeRepo) Create(t Task) (Task, error) {
+func (r *fakeRepo) Create(t Task) (Task, *AppError) {
 	t.ID = r.nextID
 	r.nextID++
 
@@ -26,13 +25,13 @@ func (r *fakeRepo) Create(t Task) (Task, error) {
 	return t, nil
 }
 
-func (r *fakeRepo) List() ([]Task, error) {
+func (r *fakeRepo) List() ([]Task, *AppError) {
 	tasks := r.tasks
 
 	return tasks, nil
 }
 
-func (r *fakeRepo) GetByID(id int) (Task, error) {
+func (r *fakeRepo) GetByID(id int) (Task, *AppError) {
 
 	for _, task := range r.tasks {
 		if task.ID == id {
@@ -40,10 +39,10 @@ func (r *fakeRepo) GetByID(id int) (Task, error) {
 		}
 	}
 
-	return Task{}, ErrTaskNotFound
+	return Task{}, NotFound("", nil)
 }
 
-func (r *fakeRepo) Update(t Task) (Task, error) {
+func (r *fakeRepo) Update(t Task) (Task, *AppError) {
 
 	for idx, task := range r.tasks {
 		if task.ID == t.ID {
@@ -53,10 +52,10 @@ func (r *fakeRepo) Update(t Task) (Task, error) {
 		}
 	}
 
-	return Task{}, ErrTaskNotFound
+	return Task{}, NotFound("", nil)
 }
 
-func (r *fakeRepo) Delete(id int) (Task, error) {
+func (r *fakeRepo) Delete(id int) (Task, *AppError) {
 
 	for idx, task := range r.tasks {
 		if task.ID == id {
@@ -66,7 +65,7 @@ func (r *fakeRepo) Delete(id int) (Task, error) {
 		}
 	}
 
-	return Task{}, ErrTaskNotFound
+	return Task{}, NotFound("", nil)
 }
 
 func TestCreateTaskEmptyTitle(t *testing.T) {
@@ -81,8 +80,8 @@ func TestCreateTaskEmptyTitle(t *testing.T) {
 
 	_, err := taskService.CreateTask(input)
 
-	if !errors.Is(err, ErrEmptyTitle) {
-		t.Fatalf("expected error %v, got %v", ErrEmptyTitle, err)
+	if err.Code != ErrCodeInvalidInput{
+		t.Fatalf("expected error %v, got %v", ErrCodeInvalidInput, err.Code)
 	}
 
 }
@@ -175,11 +174,11 @@ func TestGetByID(t *testing.T) {
 	_, err := taskService.GetByID(2)
 
 	if err == nil {
-		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
+		t.Fatalf("expected %v, got %v", ErrCodeNotFound, err)
 	}
 
-	if !errors.Is(err, ErrTaskNotFound) {
-		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+	if err.Code != ErrCodeNotFound {
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
 	// Check existing ID
@@ -208,11 +207,11 @@ func TestUpdateTask(t *testing.T) {
 	_, err := s.UpdateTask(1, UpdateTaskInput{IsDone: &done})
 
 	if err == nil {
-		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
+		t.Fatalf("expected %v, got %v", ErrCodeNotFound, err)
 	}
 
-	if !errors.Is(err, ErrTaskNotFound) {
-		t.Fatalf("expected %v, got %v", ErrTaskNotFound, err)
+	if err.Code != ErrCodeNotFound {
+		t.Fatalf("expected %v, got %v", ErrCodeNotFound, err)
 	}
 
 	// Check existing task
@@ -254,11 +253,11 @@ func TestDeleteTask(t *testing.T) {
 	_, err := s.Delete(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
-	if !errors.Is(err, ErrTaskNotFound) {
-		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+	if err.Code != ErrCodeNotFound {
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
 	//Check delete existing task
@@ -276,11 +275,11 @@ func TestDeleteTask(t *testing.T) {
 	_, err = r.GetByID(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
-	if !errors.Is(err, ErrTaskNotFound) {
-		t.Fatalf("expected error %v, got %v", ErrTaskNotFound, err)
+	if err.Code != ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
 }

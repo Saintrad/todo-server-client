@@ -1,9 +1,9 @@
 package todo
 
 type TaskRepo interface {
-	Create(Task) (Task, error)
-	List() ([]Task, error)
-	GetByID(int) (Task, error)
-	Update(Task) (Task, error)
-	Delete(int) (Task, error)
+	Create(Task) (Task, *AppError)
+	List() ([]Task, *AppError)
+	GetByID(int) (Task, *AppError)
+	Update(Task) (Task, *AppError)
+	Delete(int) (Task, *AppError)
 }

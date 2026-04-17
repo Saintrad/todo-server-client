@@ -10,6 +10,7 @@ type CreateTaskInput struct{
 
 
 type UpdateTaskInput struct {
+	id int
 	Title *string
 	Category *string
 	DueDate *time.Time
