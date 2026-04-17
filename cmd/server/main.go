@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/Saintrad/todo-server-client/internal/httpapi"
 	"github.com/Saintrad/todo-server-client/internal/storage"
@@ -20,5 +19,5 @@ func main() {
 	api := httpapi.NewServer(svc)
 
 	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", api.Routes()))
+	log.Fatal(api.Start(":8080"))
 }
