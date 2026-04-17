@@ -99,14 +99,14 @@ func (r *FileTaskRepo) Create(task todo.Task) (todo.Task, *todo.AppError) {
 func (r *FileTaskRepo) saveLocked() error {
 	b, err := json.MarshalIndent(r.state, "", "  ")
 	if err != nil {
-		return todo.Internal("server failed to delete task", err)
+		return err
 	}
 	b = append(b, '\n')
 
 	dir := filepath.Dir(r.filePath)
 	tmp, err := os.CreateTemp(dir, "tasks-*.tmp")
 	if err != nil {
-		return todo.Internal("server failed to delete task", err)
+		return err
 	}
 
 	tmpName := tmp.Name()
@@ -116,15 +116,15 @@ func (r *FileTaskRepo) saveLocked() error {
 	}()
 
 	if _, err := tmp.Write(b); err != nil {
-		return todo.Internal("server failed to delete task", err)
+		return err
 	}
 	if err := tmp.Close(); err != nil {
-		return todo.Internal("server failed to delete task", err)
+		return err
 	}
 
 	// Atomic replace on most OS/filesystems when same directory
 	if err := os.Rename(tmpName, r.filePath); err != nil {
-		return todo.Internal("server failed to save task", err)
+		return err
 	}
 	return nil
 }
@@ -143,6 +143,8 @@ func (r *FileTaskRepo) List() ([]todo.Task, *todo.AppError) {
 }
 
 func (r *FileTaskRepo) GetByID(id int) (todo.Task, *todo.AppError) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	tasks := r.state.Tasks
 
@@ -194,6 +196,8 @@ func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, *todo.AppError) {
 }
 
 func (r *FileTaskRepo) Delete(id int) (todo.Task, *todo.AppError) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	var oldTask todo.Task
 	found := false

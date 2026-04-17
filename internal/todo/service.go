@@ -5,16 +5,12 @@ import (
 
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 type Service struct {
 	repo TaskRepo
 }
 
-func NewService(r TaskRepo) Service {
-	return Service{repo: r}
+func NewService(r TaskRepo) *Service {
+	return &Service{repo: r}
 }
 
 func (s Service) CreateTask(i CreateTaskInput) (Task, *AppError) {
@@ -80,7 +76,7 @@ func (s Service) Delete(id int) (Task, *AppError) {
 
 	if err != nil {
 
-		return Task{}, NotFound("task not found", err)
+		return Task{}, err
 	}
 
 	return s.repo.Delete(id)

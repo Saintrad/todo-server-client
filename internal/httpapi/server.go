@@ -5,30 +5,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 type Server struct {
-	svc *todo.Service
+	svc    *todo.Service
 	router *gin.Engine
 }
 
-func NewServer(svc todo.Service) *Server {
-    r := gin.New()
-    
-    r.Use(LoggerMiddleware())     // custom structured logger
-    r.Use(gin.Recovery())         // panic recovery
+func NewServer(svc *todo.Service) *Server {
+	r := gin.New()
 
-    s := &Server{svc: &svc, router: r}
-    s.registerRoutes()
-    return s
+	r.Use(LoggerMiddleware()) // custom structured logger
+	r.Use(gin.Recovery())     // panic recovery
+
+	s := &Server{svc: svc, router: r}
+	s.registerRoutes()
+	return s
 }
 
-
-func (s *Server) Start (addr string) error{
+func (s *Server) Start(addr string) error {
 	return s.router.Run(addr)
 }
 
 func (s *Server) registerRoutes() {
-	tasks := s.router.Group("v1/tasks")
+	tasks := s.router.Group("/v1/tasks")
 	{
 		tasks.GET("", s.listTaskHandler)
 		tasks.POST("", s.createTaskHandler)
@@ -37,4 +35,3 @@ func (s *Server) registerRoutes() {
 		tasks.DELETE("/:id", s.deleteTaskHandler)
 	}
 }
-

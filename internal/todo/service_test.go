@@ -9,6 +9,10 @@ type fakeRepo struct {
 	nextID int
 }
 
+func strPtr(s string) *string {
+	return &s
+}
+
 // fakeRepo constructor
 func NewFakeRepo() *fakeRepo {
 	return &fakeRepo{
@@ -216,7 +220,7 @@ func TestUpdateTask(t *testing.T) {
 
 	// Check existing task
 	r.Create(Task{})
-
+	
 	
 	input := UpdateTaskInput{
 		Title:    strPtr("changed"),

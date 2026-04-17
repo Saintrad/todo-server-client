@@ -11,7 +11,7 @@ import (
 func (s *Server) createTaskHandler(c *gin.Context) {
 	var req CreateTaskRequest
 	if err := c.BindJSON(&req); err != nil {
-		WriteError(c, todo.InvalidInput("invalid task id", err))
+		WriteError(c, todo.InvalidInput("invalid create task payload", err))
 		return
 	}
 
@@ -21,7 +21,7 @@ func (s *Server) createTaskHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, task)
+	c.JSON(http.StatusCreated, ToTaskResponse(task))
 }
 
 func (s *Server) getByIdHandler(c *gin.Context) {
@@ -38,9 +38,10 @@ func (s *Server) getByIdHandler(c *gin.Context) {
     task, err := s.svc.GetByID(id)
     if err != nil {
         WriteError(c, err)
+		return
     }
 
-    c.JSON(http.StatusOK, task)
+    c.JSON(http.StatusOK, ToTaskResponse(task))
 }
 
 func (s *Server) updateTaskHandler(c *gin.Context) {
@@ -53,7 +54,7 @@ func (s *Server) updateTaskHandler(c *gin.Context) {
 
 	var req UpdateTaskRequest
 	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		WriteError(c, todo.InvalidInput("invalid update payload", err))
 	}
 
 	task, uErr := s.svc.UpdateTask(id, req.ToDomain())
@@ -72,7 +73,11 @@ func (s *Server) listTaskHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, tasks)
+	responses := make([]TaskResponse, len(tasks))
+	for i := range tasks {
+		responses[i] = ToTaskResponse(tasks[i])
+	}
+	c.JSON(http.StatusOK, responses)
 }
 
 func (s *Server) deleteTaskHandler(c *gin.Context) {
@@ -89,5 +94,5 @@ func (s *Server) deleteTaskHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, task)
+	c.JSON(http.StatusNoContent, task)
 }
