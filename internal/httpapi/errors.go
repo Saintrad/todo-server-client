@@ -1,13 +1,13 @@
 package httpapi
 
 import (
-    "errors"
-    "net/http"
+	"errors"
+	"net/http"
 
-    "log/slog"
+	"log/slog"
 
-	"github.com/Saintrad/todo-server-client/internal/todo"
-    "github.com/gin-gonic/gin"
+	"github.com/Saintrad/todo-server-client/internal/task"
+	"github.com/gin-gonic/gin"
 )
 
 type ErrorResponse struct {
@@ -16,7 +16,7 @@ type ErrorResponse struct {
 }
 
 func WriteError(c *gin.Context, err error) {
-    var appErr *todo.AppError
+    var appErr *task.AppError
 
     if errors.As(err, &appErr) {
         // structured logging
@@ -48,11 +48,11 @@ func WriteError(c *gin.Context, err error) {
     })
 }
 
-func statusCodeFor(code todo.ErrorCode) int {
+func statusCodeFor(code task.ErrorCode) int {
     switch code {
-    case todo.ErrCodeNotFound:
+    case task.ErrCodeNotFound:
         return http.StatusNotFound
-    case todo.ErrCodeInvalidInput:
+    case task.ErrCodeInvalidInput:
         return http.StatusBadRequest
     default:
         return http.StatusInternalServerError

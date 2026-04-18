@@ -1,4 +1,4 @@
-package storage
+package task
 
 import (
 	"encoding/json"
@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
-
-	"github.com/Saintrad/todo-server-client/internal/todo"
 )
 
 func strPtr(s string) *string {
@@ -26,7 +24,7 @@ func TestFileRepo_NoFile_StartsEmptyAndCreatesFile(t *testing.T) {
 	}
 
 	// Call Create twice and assert IDs are 1 and 2.
-	task1, err := repo.Create(todo.Task{
+	task1, err := repo.Create(Task{
 		Title:     "first",
 		DueDate:   &now,
 		CreatedAt: now,
@@ -39,7 +37,7 @@ func TestFileRepo_NoFile_StartsEmptyAndCreatesFile(t *testing.T) {
 		t.Fatalf("expected ID 1, got %d", task1.ID)
 	}
 
-	task2, err := repo.Create(todo.Task{
+	task2, err := repo.Create(Task{
 		Title:     "second",
 		DueDate:   &now,
 		CreatedAt: now,
@@ -69,7 +67,7 @@ func TestFileRepo_ExistingFile_LoadsStateAndContinuesIDs(t *testing.T) {
 
 	state := fileState{
 		NextID: 6,
-		Tasks: []todo.Task{
+		Tasks: []Task{
 			{
 				ID:        1,
 				Title:     "Buy milk",
@@ -129,7 +127,7 @@ func TestFileRepo_ExistingFile_LoadsStateAndContinuesIDs(t *testing.T) {
 		t.Fatalf("expected no error, got %v", nErr)
 	}
 
-	task, cErr := repo.Create(todo.Task{
+	task, cErr := repo.Create(Task{
 		Title: "task",
 	})
 	if cErr != nil {
@@ -155,7 +153,7 @@ func TestUpdateTask(t *testing.T) {
 		t.Fatalf("expected no error, got %v", nErr)
 	}
 
-	inputTask := todo.Task{
+	inputTask := Task{
 		ID:       1,
 		Title:    "changed",
 		Category: strPtr("changed"),
@@ -164,15 +162,15 @@ func TestUpdateTask(t *testing.T) {
 	_, err := repo.Update(inputTask)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
-	if err.Code != todo.ErrCodeNotFound {
-		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
+	if err.Code != ErrCodeNotFound {
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
 	// Check updating exisiting task
-	_, cErr := repo.Create(todo.Task{})
+	_, cErr := repo.Create(Task{})
 	if cErr != nil {
 		t.Fatalf("expected no errors, got %v", cErr.Code)
 	}
@@ -208,15 +206,15 @@ func TestDeleteTask(t *testing.T) {
 	_, err := repo.Delete(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
-	if err.Code != todo.ErrCodeNotFound  {
-		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err.Code)
+	if err.Code != ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err.Code)
 	}
 
 	// Check delete existing task
-	_, cErr := repo.Create(todo.Task{})
+	_, cErr := repo.Create(Task{})
 	if cErr != nil {
 		t.Fatalf("expected no errors, got %v", cErr)
 	}
@@ -229,10 +227,10 @@ func TestDeleteTask(t *testing.T) {
 	_, err = repo.GetByID(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 
-	if err.Code != todo.ErrCodeNotFound  {
-		t.Fatalf("expected error %v, got %v", todo.ErrCodeNotFound, err)
+	if err.Code != ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
 	}
 }

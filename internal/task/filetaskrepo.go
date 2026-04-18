@@ -1,4 +1,4 @@
-package storage
+package task
 
 import (
 	"encoding/json"
@@ -8,12 +8,11 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Saintrad/todo-server-client/internal/todo"
 )
 
 type fileState struct {
 	NextID int         `json:"next_id"`
-	Tasks  []todo.Task `json:"tasks"`
+	Tasks  []Task `json:"tasks"`
 }
 
 type FileTaskRepo struct {
@@ -28,7 +27,7 @@ func NewFileTaskRepo(path string) (*FileTaskRepo, error) {
 		filePath: path,
 		state: fileState{
 			NextID: 1,
-			Tasks:  make([]todo.Task, 0),
+			Tasks:  make([]Task, 0),
 		},
 	}
 
@@ -61,14 +60,14 @@ func NewFileTaskRepo(path string) (*FileTaskRepo, error) {
 		st.NextID = computeNextID(st.Tasks)
 	}
 	if st.Tasks == nil {
-		st.Tasks = make([]todo.Task, 0)
+		st.Tasks = make([]Task, 0)
 	}
 
 	r.state = st
 	return r, nil
 }
 
-func computeNextID(tasks []todo.Task) int {
+func computeNextID(tasks []Task) int {
 	max := 0
 	for _, t := range tasks {
 		if t.ID > max {
@@ -79,7 +78,7 @@ func computeNextID(tasks []todo.Task) int {
 }
 
 // Create assigns an ID, stores the task, and persists to disk.
-func (r *FileTaskRepo) Create(task todo.Task) (todo.Task, *todo.AppError) {
+func (r *FileTaskRepo) Create(task Task) (Task, *AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -89,7 +88,7 @@ func (r *FileTaskRepo) Create(task todo.Task) (todo.Task, *todo.AppError) {
 	r.state.Tasks = append(r.state.Tasks, task)
 
 	if err := r.saveLocked(); err != nil {
-		return todo.Task{}, todo.Internal("server failed to create task", err)
+		return Task{}, Internal("server failed to create task", err)
 	}
 	return task, nil
 }
@@ -129,10 +128,10 @@ func (r *FileTaskRepo) saveLocked() error {
 	return nil
 }
 
-func (r *FileTaskRepo) List() ([]todo.Task, *todo.AppError) {
+func (r *FileTaskRepo) List() ([]Task, *AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	list := make([]todo.Task, 0)
+	list := make([]Task, 0)
 
 	for _, task := range r.state.Tasks {
 
@@ -142,7 +141,7 @@ func (r *FileTaskRepo) List() ([]todo.Task, *todo.AppError) {
 	return list, nil
 }
 
-func (r *FileTaskRepo) GetByID(id int) (todo.Task, *todo.AppError) {
+func (r *FileTaskRepo) GetByID(id int) (Task, *AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -154,15 +153,15 @@ func (r *FileTaskRepo) GetByID(id int) (todo.Task, *todo.AppError) {
 		}
 	}
 
-	return todo.Task{}, todo.NotFound("task not found", nil)
+	return Task{}, NotFound("task not found", nil)
 }
 
-func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, *todo.AppError) {
+func (r *FileTaskRepo) Update(t Task) (Task, *AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	var oldIdx int
-	var oldTask todo.Task
+	var oldTask Task
 	found := false
 
 	// Find the task by ID
@@ -179,7 +178,7 @@ func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, *todo.AppError) {
 
 	if !found {
 
-		return todo.Task{}, todo.NotFound("task not found", nil)
+		return Task{}, NotFound("task not found", nil)
 	}
 
 	// Save the state
@@ -189,17 +188,17 @@ func (r *FileTaskRepo) Update(t todo.Task) (todo.Task, *todo.AppError) {
 	if err != nil {
 		r.state.Tasks[oldIdx] = oldTask
 
-		return todo.Task{}, todo.Internal("server failed to update task", err)
+		return Task{}, Internal("server failed to update task", err)
 	}
 
 	return t, nil
 }
 
-func (r *FileTaskRepo) Delete(id int) (todo.Task, *todo.AppError) {
+func (r *FileTaskRepo) Delete(id int) (Task, *AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	var oldTask todo.Task
+	var oldTask Task
 	found := false
 
 	for idx, task := range r.state.Tasks {
@@ -214,7 +213,7 @@ func (r *FileTaskRepo) Delete(id int) (todo.Task, *todo.AppError) {
 
 	if !found {
 
-		return todo.Task{}, todo.NotFound("task not found", nil)
+		return Task{}, NotFound("task not found", nil)
 	}
 
 	err := r.saveLocked()
@@ -222,7 +221,7 @@ func (r *FileTaskRepo) Delete(id int) (todo.Task, *todo.AppError) {
 	if err != nil {
 		r.state.Tasks = append(r.state.Tasks, oldTask)
 
-		return todo.Task{}, todo.Internal("server failed to delete task", err)
+		return Task{}, Internal("server failed to delete task", err)
 	}
 
 	return oldTask, nil

@@ -3,7 +3,7 @@ package httpapi
 import (
 	"time"
 
-	"github.com/Saintrad/todo-server-client/internal/todo"
+	"github.com/Saintrad/todo-server-client/internal/task"
 )
 
 // POST /v1/tasks
@@ -33,16 +33,16 @@ type TaskResponse struct {
 
 // ---------- Mapping helpers (DTO -> domain) ----------
 
-func (r CreateTaskRequest) ToDomain() todo.CreateTaskInput {
-	return todo.CreateTaskInput{
+func (r CreateTaskRequest) ToDomain() task.CreateTaskInput {
+	return task.CreateTaskInput{
 		Title:    r.Title,
 		Category: r.Category,
 		DueDate:  r.DueDate,
 	}
 }
 
-func (r UpdateTaskRequest) ToDomain() todo.UpdateTaskInput {
-	return todo.UpdateTaskInput{
+func (r UpdateTaskRequest) ToDomain() task.UpdateTaskInput {
+	return task.UpdateTaskInput{
 		Title:    r.Title,
 		Category: r.Category,
 		DueDate:  r.DueDate,
@@ -52,7 +52,7 @@ func (r UpdateTaskRequest) ToDomain() todo.UpdateTaskInput {
 
 // ---------- Mapping helper (domain -> DTO) ----------
 
-func ToTaskResponse(t todo.Task) TaskResponse {
+func ToTaskResponse(t task.Task) TaskResponse {
 	return TaskResponse{
 		ID:        t.ID,
 		Title:     t.Title,

@@ -1,4 +1,4 @@
-package todo
+package task
 
 type TaskRepo interface {
 	Create(Task) (Task, *AppError)

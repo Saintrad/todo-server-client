@@ -4,18 +4,17 @@ import (
 	"log"
 
 	"github.com/Saintrad/todo-server-client/internal/httpapi"
-	"github.com/Saintrad/todo-server-client/internal/storage"
-	"github.com/Saintrad/todo-server-client/internal/todo"
+	"github.com/Saintrad/todo-server-client/internal/task"
 )
 
 
 func main() {
-	repo, err := storage.NewFileTaskRepo("data/tasks.JSON")
+	repo, err := task.NewFileTaskRepo("data/tasks.JSON")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	svc := todo.NewService(repo)
+	svc := task.NewService(repo)
 	api := httpapi.NewServer(svc)
 
 	log.Println("listening on :8080")

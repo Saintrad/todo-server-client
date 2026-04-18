@@ -1,4 +1,4 @@
-package todo
+package task
 
 import (
 	"testing"
@@ -7,10 +7,6 @@ import (
 type fakeRepo struct {
 	tasks  []Task
 	nextID int
-}
-
-func strPtr(s string) *string {
-	return &s
 }
 
 // fakeRepo constructor
@@ -201,7 +197,7 @@ func TestGetByID(t *testing.T) {
 	}
 }
 
-func TestUpdateTask(t *testing.T) {
+func TestServiceUpdateTask(t *testing.T) {
 
 	r := NewFakeRepo()
 	s := NewService(r)
@@ -248,7 +244,7 @@ func TestUpdateTask(t *testing.T) {
 
 }
 
-func TestDeleteTask(t *testing.T) {
+func TestServiceDeleteTask(t *testing.T) {
 
 	r := NewFakeRepo()
 	s := NewService(r)

@@ -1,16 +1,16 @@
 package httpapi
 
 import (
-	"github.com/Saintrad/todo-server-client/internal/todo"
+	"github.com/Saintrad/todo-server-client/internal/task"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	svc    *todo.Service
+	svc    *task.Service
 	router *gin.Engine
 }
 
-func NewServer(svc *todo.Service) *Server {
+func NewServer(svc *task.Service) *Server {
 	r := gin.New()
 
 	r.Use(LoggerMiddleware()) // custom structured logger
