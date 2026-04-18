@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Saintrad/todo-server-client/internal/task"
+	"github.com/Saintrad/todo-server-client/internal/richerror"
 	"github.com/gin-gonic/gin"
 )
 
 func (s *Server) createTaskHandler(c *gin.Context) {
 	var req CreateTaskRequest
 	if err := c.BindJSON(&req); err != nil {
-		WriteError(c, task.InvalidInput("invalid create task payload", err))
+		WriteError(c, richerror.InvalidInput("invalid create task payload", err))
 		return
 	}
 
@@ -26,35 +26,35 @@ func (s *Server) createTaskHandler(c *gin.Context) {
 
 func (s *Server) getByIdHandler(c *gin.Context) {
 	// Extract the :id parameter from path
-    idStr := c.Param("id")
+	idStr := c.Param("id")
 
-    // Convert to int
-    id, err := strconv.Atoi(idStr)
-    if err != nil {
-        WriteError(c, task.InvalidInput("invalid task id", err))
-        return
-    }
-
-    task, err := s.svc.GetByID(id)
-    if err != nil {
-        WriteError(c, err)
+	// Convert to int
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		WriteError(c, richerror.InvalidInput("invalid task id", err))
 		return
-    }
+	}
 
-    c.JSON(http.StatusOK, ToTaskResponse(task))
+	task, err := s.svc.GetByID(id)
+	if err != nil {
+		WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, ToTaskResponse(task))
 }
 
 func (s *Server) updateTaskHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-        WriteError(c, task.InvalidInput("invalid task id", err))
-        return
-    }
+		WriteError(c, richerror.InvalidInput("invalid task id", err))
+		return
+	}
 
 	var req UpdateTaskRequest
 	if err := c.BindJSON(&req); err != nil {
-		WriteError(c, task.InvalidInput("invalid update payload", err))
+		WriteError(c, richerror.InvalidInput("invalid update payload", err))
 	}
 
 	task, uErr := s.svc.UpdateTask(id, req.ToDomain())
@@ -84,9 +84,9 @@ func (s *Server) deleteTaskHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-        WriteError(c, task.InvalidInput("invalid task id", err))
-        return
-    }
+		WriteError(c, richerror.InvalidInput("invalid task id", err))
+		return
+	}
 
 	task, dErr := s.svc.Delete(id)
 	if dErr != nil {

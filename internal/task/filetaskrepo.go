@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/Saintrad/todo-server-client/internal/richerror"
 )
 
 type fileState struct {
@@ -78,7 +79,7 @@ func computeNextID(tasks []Task) int {
 }
 
 // Create assigns an ID, stores the task, and persists to disk.
-func (r *FileTaskRepo) Create(task Task) (Task, *AppError) {
+func (r *FileTaskRepo) Create(task Task) (Task, *richerror.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -88,7 +89,7 @@ func (r *FileTaskRepo) Create(task Task) (Task, *AppError) {
 	r.state.Tasks = append(r.state.Tasks, task)
 
 	if err := r.saveLocked(); err != nil {
-		return Task{}, Internal("server failed to create task", err)
+		return Task{}, richerror.Internal("server failed to create task", err)
 	}
 	return task, nil
 }
@@ -128,7 +129,7 @@ func (r *FileTaskRepo) saveLocked() error {
 	return nil
 }
 
-func (r *FileTaskRepo) List() ([]Task, *AppError) {
+func (r *FileTaskRepo) List() ([]Task, *richerror.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	list := make([]Task, 0)
@@ -141,7 +142,7 @@ func (r *FileTaskRepo) List() ([]Task, *AppError) {
 	return list, nil
 }
 
-func (r *FileTaskRepo) GetByID(id int) (Task, *AppError) {
+func (r *FileTaskRepo) GetByID(id int) (Task, *richerror.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -153,10 +154,10 @@ func (r *FileTaskRepo) GetByID(id int) (Task, *AppError) {
 		}
 	}
 
-	return Task{}, NotFound("task not found", nil)
+	return Task{}, richerror.NotFound("task not found", nil)
 }
 
-func (r *FileTaskRepo) Update(t Task) (Task, *AppError) {
+func (r *FileTaskRepo) Update(t Task) (Task, *richerror.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -178,7 +179,7 @@ func (r *FileTaskRepo) Update(t Task) (Task, *AppError) {
 
 	if !found {
 
-		return Task{}, NotFound("task not found", nil)
+		return Task{}, richerror.NotFound("task not found", nil)
 	}
 
 	// Save the state
@@ -188,13 +189,13 @@ func (r *FileTaskRepo) Update(t Task) (Task, *AppError) {
 	if err != nil {
 		r.state.Tasks[oldIdx] = oldTask
 
-		return Task{}, Internal("server failed to update task", err)
+		return Task{}, richerror.Internal("server failed to update task", err)
 	}
 
 	return t, nil
 }
 
-func (r *FileTaskRepo) Delete(id int) (Task, *AppError) {
+func (r *FileTaskRepo) Delete(id int) (Task, *richerror.AppError) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -213,7 +214,7 @@ func (r *FileTaskRepo) Delete(id int) (Task, *AppError) {
 
 	if !found {
 
-		return Task{}, NotFound("task not found", nil)
+		return Task{}, richerror.NotFound("task not found", nil)
 	}
 
 	err := r.saveLocked()
@@ -221,7 +222,7 @@ func (r *FileTaskRepo) Delete(id int) (Task, *AppError) {
 	if err != nil {
 		r.state.Tasks = append(r.state.Tasks, oldTask)
 
-		return Task{}, Internal("server failed to delete task", err)
+		return Task{}, richerror.Internal("server failed to delete task", err)
 	}
 
 	return oldTask, nil

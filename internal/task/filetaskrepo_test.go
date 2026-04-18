@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/Saintrad/todo-server-client/internal/richerror"
 )
 
 func strPtr(s string) *string {
@@ -162,11 +164,11 @@ func TestUpdateTask(t *testing.T) {
 	_, err := repo.Update(inputTask)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
-	if err.Code != ErrCodeNotFound {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+	if err.Code != richerror.ErrCodeNotFound {
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
 	// Check updating exisiting task
@@ -206,11 +208,11 @@ func TestDeleteTask(t *testing.T) {
 	_, err := repo.Delete(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
-	if err.Code != ErrCodeNotFound  {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err.Code)
+	if err.Code != richerror.ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err.Code)
 	}
 
 	// Check delete existing task
@@ -227,10 +229,10 @@ func TestDeleteTask(t *testing.T) {
 	_, err = repo.GetByID(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
-	if err.Code != ErrCodeNotFound  {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+	if err.Code != richerror.ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 }

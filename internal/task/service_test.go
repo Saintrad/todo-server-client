@@ -2,6 +2,8 @@ package task
 
 import (
 	"testing"
+
+	"github.com/Saintrad/todo-server-client/internal/richerror"
 )
 
 type fakeRepo struct {
@@ -16,7 +18,7 @@ func NewFakeRepo() *fakeRepo {
 		nextID: 1,
 	}
 }
-func (r *fakeRepo) Create(t Task) (Task, *AppError) {
+func (r *fakeRepo) Create(t Task) (Task, *richerror.AppError) {
 	t.ID = r.nextID
 	r.nextID++
 
@@ -25,13 +27,13 @@ func (r *fakeRepo) Create(t Task) (Task, *AppError) {
 	return t, nil
 }
 
-func (r *fakeRepo) List() ([]Task, *AppError) {
+func (r *fakeRepo) List() ([]Task, *richerror.AppError) {
 	tasks := r.tasks
 
 	return tasks, nil
 }
 
-func (r *fakeRepo) GetByID(id int) (Task, *AppError) {
+func (r *fakeRepo) GetByID(id int) (Task, *richerror.AppError) {
 
 	for _, task := range r.tasks {
 		if task.ID == id {
@@ -39,10 +41,10 @@ func (r *fakeRepo) GetByID(id int) (Task, *AppError) {
 		}
 	}
 
-	return Task{}, NotFound("", nil)
+	return Task{}, richerror.NotFound("", nil)
 }
 
-func (r *fakeRepo) Update(t Task) (Task, *AppError) {
+func (r *fakeRepo) Update(t Task) (Task, *richerror.AppError) {
 
 	for idx, task := range r.tasks {
 		if task.ID == t.ID {
@@ -52,10 +54,10 @@ func (r *fakeRepo) Update(t Task) (Task, *AppError) {
 		}
 	}
 
-	return Task{}, NotFound("", nil)
+	return Task{}, richerror.NotFound("", nil)
 }
 
-func (r *fakeRepo) Delete(id int) (Task, *AppError) {
+func (r *fakeRepo) Delete(id int) (Task, *richerror.AppError) {
 
 	for idx, task := range r.tasks {
 		if task.ID == id {
@@ -65,7 +67,7 @@ func (r *fakeRepo) Delete(id int) (Task, *AppError) {
 		}
 	}
 
-	return Task{}, NotFound("", nil)
+	return Task{}, richerror.NotFound("", nil)
 }
 
 func TestCreateTaskEmptyTitle(t *testing.T) {
@@ -80,8 +82,8 @@ func TestCreateTaskEmptyTitle(t *testing.T) {
 
 	_, err := taskService.CreateTask(input)
 
-	if err.Code != ErrCodeInvalidInput{
-		t.Fatalf("expected error %v, got %v", ErrCodeInvalidInput, err.Code)
+	if err.Code != richerror.ErrCodeInvalidInput{
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeInvalidInput, err.Code)
 	}
 
 }
@@ -174,11 +176,11 @@ func TestGetByID(t *testing.T) {
 	_, err := taskService.GetByID(2)
 
 	if err == nil {
-		t.Fatalf("expected %v, got %v", ErrCodeNotFound, err)
+		t.Fatalf("expected %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
-	if err.Code != ErrCodeNotFound {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+	if err.Code != richerror.ErrCodeNotFound {
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
 	// Check existing ID
@@ -207,11 +209,11 @@ func TestServiceUpdateTask(t *testing.T) {
 	_, err := s.UpdateTask(1, UpdateTaskInput{IsDone: &done})
 
 	if err == nil {
-		t.Fatalf("expected %v, got %v", ErrCodeNotFound, err)
+		t.Fatalf("expected %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
-	if err.Code != ErrCodeNotFound {
-		t.Fatalf("expected %v, got %v", ErrCodeNotFound, err)
+	if err.Code != richerror.ErrCodeNotFound {
+		t.Fatalf("expected %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
 	// Check existing task
@@ -253,11 +255,11 @@ func TestServiceDeleteTask(t *testing.T) {
 	_, err := s.Delete(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
-	if err.Code != ErrCodeNotFound {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+	if err.Code != richerror.ErrCodeNotFound {
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
 	//Check delete existing task
@@ -275,11 +277,11 @@ func TestServiceDeleteTask(t *testing.T) {
 	_, err = r.GetByID(1)
 
 	if err == nil {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
-	if err.Code != ErrCodeNotFound  {
-		t.Fatalf("expected error %v, got %v", ErrCodeNotFound, err)
+	if err.Code != richerror.ErrCodeNotFound  {
+		t.Fatalf("expected error %v, got %v", richerror.ErrCodeNotFound, err)
 	}
 
 }

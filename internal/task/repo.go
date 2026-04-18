@@ -1,9 +1,11 @@
 package task
 
+import "github.com/Saintrad/todo-server-client/internal/richerror"
+
 type TaskRepo interface {
-	Create(Task) (Task, *AppError)
-	List() ([]Task, *AppError)
-	GetByID(int) (Task, *AppError)
-	Update(Task) (Task, *AppError)
-	Delete(int) (Task, *AppError)
+	Create(Task) (Task, *richerror.AppError)
+	List() ([]Task, *richerror.AppError)
+	GetByID(int) (Task, *richerror.AppError)
+	Update(Task) (Task, *richerror.AppError)
+	Delete(int) (Task, *richerror.AppError)
 }
