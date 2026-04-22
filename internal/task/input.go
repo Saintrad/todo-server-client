@@ -2,16 +2,15 @@ package task
 
 import "time"
 
-type CreateTaskInput struct{
-	Title string
+type CreateTaskInput struct {
+	Title    string
 	Category *string
-	DueDate *time.Time
+	DueDate  *time.Time
 }
 
-
 type UpdateTaskInput struct {
-	Title *string
+	Title    *string
 	Category *string
-	DueDate *time.Time
-	IsDone *bool
+	DueDate  *time.Time
+	IsDone   *bool
 }

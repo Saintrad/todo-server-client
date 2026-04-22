@@ -27,7 +27,7 @@ func WriteError(c *gin.Context, err error) {
 			"path", c.FullPath(),
 		)
 
-		status := statusCodeFor(appErr.Code)
+		status := StatusCodeFor(appErr.Code)
 
 		c.JSON(status, ErrorResponse{
 			Error: appErr.Message,
@@ -48,12 +48,33 @@ func WriteError(c *gin.Context, err error) {
 	})
 }
 
-func statusCodeFor(code richerror.ErrorCode) int {
+func WriteValidationErrors(c *gin.Context, errs []richerror.AppError) {
+    var fields = make(map[string]string)
+
+    for _, e := range errs {
+        fields[e.Message] = e.Err.Error()
+    }
+
+    slog.Warn("validation failed",
+        "path", c.FullPath(),
+        "errors", errs,
+    )
+
+    c.JSON(http.StatusBadRequest, gin.H{
+        "error":  "validation_error",
+        "message": "invalid input",
+        "fields": fields,
+    })
+}
+
+func StatusCodeFor(code richerror.ErrorCode) int {
 	switch code {
 	case richerror.ErrCodeNotFound:
 		return http.StatusNotFound
 	case richerror.ErrCodeInvalidInput:
 		return http.StatusBadRequest
+	case richerror.ErrCodeUnauthorized:
+		return http.StatusUnauthorized
 	default:
 		return http.StatusInternalServerError
 	}

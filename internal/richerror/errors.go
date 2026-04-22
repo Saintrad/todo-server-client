@@ -8,6 +8,7 @@ const (
 	ErrCodeNotFound     ErrorCode = "NOT_FOUND"
 	ErrCodeInvalidInput ErrorCode = "INVALID_INPUT"
 	ErrCodeInternal     ErrorCode = "INTERNAL"
+	ErrCodeUnauthorized ErrorCode = "UNAUTHORIZED"
 )
 
 type AppError struct {
@@ -35,4 +36,8 @@ func InvalidInput(msg string, err error) *AppError {
 
 func Internal(msg string, err error) *AppError {
 	return &AppError{Code: ErrCodeInternal, Message: msg, Err: err}
+}
+
+func Unauthorized(msg string, err error) *AppError {
+	return &AppError{Code: ErrCodeUnauthorized, Message: msg, Err: err}
 }

@@ -78,9 +78,9 @@ func TestCreateTaskEmptyTitle(t *testing.T) {
 	}
 
 	r := NewFakeRepo()
-	taskService := NewService(r)
+	taskTaskSvc := NewTaskSvc(r)
 
-	_, err := taskService.CreateTask(input)
+	_, err := taskTaskSvc.CreateTask(input)
 
 	if err.Code != richerror.ErrCodeInvalidInput{
 		t.Fatalf("expected error %v, got %v", richerror.ErrCodeInvalidInput, err.Code)
@@ -96,10 +96,10 @@ func TestCreateTaskOkTask(t *testing.T) {
 	}
 
 	r := NewFakeRepo()
-	taskService := NewService(r)
+	taskTaskSvc := NewTaskSvc(r)
 
 	currID := r.nextID
-	createdTask, err := taskService.CreateTask(input)
+	createdTask, err := taskTaskSvc.CreateTask(input)
 
 	if err != nil {
 		t.Fatalf("expected no errors, got %v", err)
@@ -136,9 +136,9 @@ func TestCreateTaskOkTask(t *testing.T) {
 
 func TestListTask(t *testing.T) {
 	r := NewFakeRepo()
-	taskService := NewService(r)
+	taskTaskSvc := NewTaskSvc(r)
 
-	tasks, err := taskService.ListTask()
+	tasks, err := taskTaskSvc.ListTask()
 
 	if err != nil {
 		t.Fatalf("expected no errors, got %v", err)
@@ -153,7 +153,7 @@ func TestListTask(t *testing.T) {
 		Title: "first",
 	})
 
-	tasks, err = taskService.ListTask()
+	tasks, err = taskTaskSvc.ListTask()
 
 	if err != nil {
 		t.Fatalf("expected no errors, got %v", err)
@@ -167,13 +167,13 @@ func TestListTask(t *testing.T) {
 
 func TestGetByID(t *testing.T) {
 	r := NewFakeRepo()
-	taskService := NewService(r)
+	taskTaskSvc := NewTaskSvc(r)
 	r.Create(Task{
 		Title: "first",
 	})
 
 	// Check missing ID
-	_, err := taskService.GetByID(2)
+	_, err := taskTaskSvc.GetByID(2)
 
 	if err == nil {
 		t.Fatalf("expected %v, got %v", richerror.ErrCodeNotFound, err)
@@ -184,7 +184,7 @@ func TestGetByID(t *testing.T) {
 	}
 
 	// Check existing ID
-	task, err := taskService.GetByID(1)
+	task, err := taskTaskSvc.GetByID(1)
 
 	if err != nil {
 		t.Fatalf("expected no errors, got %v", err)
@@ -199,10 +199,10 @@ func TestGetByID(t *testing.T) {
 	}
 }
 
-func TestServiceUpdateTask(t *testing.T) {
+func TestTaskSvcUpdateTask(t *testing.T) {
 
 	r := NewFakeRepo()
-	s := NewService(r)
+	s := NewTaskSvc(r)
 	done := true
 
 	// Check missing task
@@ -246,10 +246,10 @@ func TestServiceUpdateTask(t *testing.T) {
 
 }
 
-func TestServiceDeleteTask(t *testing.T) {
+func TestTaskSvcDeleteTask(t *testing.T) {
 
 	r := NewFakeRepo()
-	s := NewService(r)
+	s := NewTaskSvc(r)
 
 	// Check delete missing task
 	_, err := s.Delete(1)

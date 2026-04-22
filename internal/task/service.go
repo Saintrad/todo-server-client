@@ -6,15 +6,15 @@ import (
 	"github.com/Saintrad/todo-server-client/internal/richerror"
 )
 
-type Service struct {
+type TaskSvc struct {
 	repo TaskRepo
 }
 
-func NewService(r TaskRepo) *Service {
-	return &Service{repo: r}
+func NewTaskSvc(r TaskRepo) *TaskSvc {
+	return &TaskSvc{repo: r}
 }
 
-func (s Service) CreateTask(i CreateTaskInput) (Task, *richerror.AppError) {
+func (s TaskSvc) CreateTask(i CreateTaskInput) (Task, *richerror.AppError) {
 
 	// Check title not to be empty
 	if i.Title == "" {
@@ -34,17 +34,17 @@ func (s Service) CreateTask(i CreateTaskInput) (Task, *richerror.AppError) {
 	return s.repo.Create(newTask)
 }
 
-func (s Service) ListTask() ([]Task, *richerror.AppError) {
+func (s TaskSvc) ListTask() ([]Task, *richerror.AppError) {
 
 	return s.repo.List()
 }
 
-func (s Service) GetByID(id int) (Task, *richerror.AppError) {
+func (s TaskSvc) GetByID(id int) (Task, *richerror.AppError) {
 
 	return s.repo.GetByID(id)
 }
 
-func (s Service) UpdateTask(id int,i UpdateTaskInput) (Task, *richerror.AppError) {
+func (s TaskSvc) UpdateTask(id int,i UpdateTaskInput) (Task, *richerror.AppError) {
 
 	task, err := s.repo.GetByID(id)
 
@@ -71,7 +71,7 @@ func (s Service) UpdateTask(id int,i UpdateTaskInput) (Task, *richerror.AppError
 	return s.repo.Update(task)
 }
 
-func (s Service) Delete(id int) (Task, *richerror.AppError) {
+func (s TaskSvc) Delete(id int) (Task, *richerror.AppError) {
 
 	_, err := s.repo.GetByID(id)
 

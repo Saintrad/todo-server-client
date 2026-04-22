@@ -15,7 +15,7 @@ func (s *Server) createTaskHandler(c *gin.Context) {
 		return
 	}
 
-	task, cErr := s.svc.CreateTask(req.ToDomain())
+	task, cErr := s.taskSvc.CreateTask(req.ToDomain())
 	if cErr != nil {
 		WriteError(c, cErr)
 		return
@@ -35,7 +35,7 @@ func (s *Server) getByIdHandler(c *gin.Context) {
 		return
 	}
 
-	task, err := s.svc.GetByID(id)
+	task, err := s.taskSvc.GetByID(id)
 	if err != nil {
 		WriteError(c, err)
 		return
@@ -57,7 +57,7 @@ func (s *Server) updateTaskHandler(c *gin.Context) {
 		WriteError(c, richerror.InvalidInput("invalid update payload", err))
 	}
 
-	task, uErr := s.svc.UpdateTask(id, req.ToDomain())
+	task, uErr := s.taskSvc.UpdateTask(id, req.ToDomain())
 	if uErr != nil {
 		WriteError(c, uErr)
 		return
@@ -67,7 +67,7 @@ func (s *Server) updateTaskHandler(c *gin.Context) {
 }
 
 func (s *Server) listTaskHandler(c *gin.Context) {
-	tasks, err := s.svc.ListTask()
+	tasks, err := s.taskSvc.ListTask()
 	if err != nil {
 		WriteError(c, err)
 		return
@@ -88,7 +88,7 @@ func (s *Server) deleteTaskHandler(c *gin.Context) {
 		return
 	}
 
-	task, dErr := s.svc.Delete(id)
+	task, dErr := s.taskSvc.Delete(id)
 	if dErr != nil {
 		WriteError(c, dErr)
 		return

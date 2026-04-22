@@ -49,6 +49,15 @@ func main() {
 		if err := cmdDelete(c, args); err != nil {
 			fail(err)
 		}
+	case "register":
+		if err := cmdRegister(c, args); err != nil {
+			fail(err)
+		}
+
+	case "login":
+		if err := cmdLogin(c, args); err != nil {
+			fail(err)
+		}
 
 	default:
 		fmt.Fprintln(os.Stderr, "unknown command:", cmd)
@@ -65,6 +74,8 @@ func usage() {
   client get <id>
   client update <id> [--title "..."] [--category "..."] [--due "YYYY-MM-DD"] [--done | --undone]
   client delete <id>
+  client register --name "me" --email "user@mail.com" --password "secret"
+  client login --email "user@mail.com" --password "secret"
 
 Environment:
   TODO_BASE_URL (default http://localhost:8080)
@@ -283,3 +294,63 @@ func envOrDefault(key, def string) string {
 type ioDiscard struct{}
 
 func (ioDiscard) Write(p []byte) (int, error) { return len(p), nil }
+
+func cmdRegister(c *apiclient.Client, args []string) error {
+	fs := flag.NewFlagSet("register", flag.ContinueOnError)
+	fs.SetOutput(ioDiscard{})
+
+	email := fs.String("email", "", "user email")
+	password := fs.String("password", "", "user password")
+	name := fs.String("name", "", "user name")
+
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(*email) == "" || strings.TrimSpace(*password) == "" || strings.TrimSpace(*name) == "" {
+		return fmt.Errorf("--name and --email and --password are required")
+	}
+
+	err := c.Register(apiclient.RegisterRequest{
+		Email:    strings.TrimSpace(*email),
+		Password: strings.TrimSpace(*password),
+		Name:     strings.TrimSpace(*name),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("user registered successfully")
+	return nil
+}
+
+func cmdLogin(c *apiclient.Client, args []string) error {
+	fs := flag.NewFlagSet("login", flag.ContinueOnError)
+	fs.SetOutput(ioDiscard{})
+
+	email := fs.String("email", "", "user email")
+	password := fs.String("password", "", "user password")
+
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(*email) == "" || strings.TrimSpace(*password) == "" {
+		return fmt.Errorf("--email and --password are required")
+	}
+
+	resp, err := c.Login(apiclient.LoginRequest{
+		Email:    strings.TrimSpace(*email),
+		Password: strings.TrimSpace(*password),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("login successful")
+	fmt.Println("token:", resp.Token)
+
+	return nil
+}
