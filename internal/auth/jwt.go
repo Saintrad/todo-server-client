@@ -21,7 +21,7 @@ func NewJWTManager(secret string, duration time.Duration) *JWTManager {
 
 func (m *JWTManager) GenerateToken(userID int) (string, *richerror.AppError) {
     claims := jwt.MapClaims{
-        "sub": userID,
+        "uid": userID,
         "exp": time.Now().Add(m.tokenDuration).Unix(),
         "iat": time.Now().Unix(),
     }

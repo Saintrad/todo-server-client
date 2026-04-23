@@ -25,5 +25,10 @@ func (c *Client) Register(req RegisterRequest) error {
 func (c *Client) Login(req LoginRequest) (LoginResponse, error) {
 	var out LoginResponse
 	_, err := c.do(http.MethodPost, "/v1/users/login", req, &out)
+	
+	if err == nil {
+    c.SetToken(out.Token)
+	}
+
 	return out, err
 }

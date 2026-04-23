@@ -58,6 +58,12 @@ func main() {
 		if err := cmdLogin(c, args); err != nil {
 			fail(err)
 		}
+	case "logout":
+		err := c.ClearToken()
+		if err != nil {
+			fmt.Println("logout failed")
+		}
+		fmt.Println("logged out")
 
 	default:
 		fmt.Fprintln(os.Stderr, "unknown command:", cmd)
@@ -76,6 +82,7 @@ func usage() {
   client delete <id>
   client register --name "me" --email "user@mail.com" --password "secret"
   client login --email "user@mail.com" --password "secret"
+  client logout
 
 Environment:
   TODO_BASE_URL (default http://localhost:8080)
@@ -340,7 +347,7 @@ func cmdLogin(c *apiclient.Client, args []string) error {
 		return fmt.Errorf("--email and --password are required")
 	}
 
-	resp, err := c.Login(apiclient.LoginRequest{
+	_, err := c.Login(apiclient.LoginRequest{
 		Email:    strings.TrimSpace(*email),
 		Password: strings.TrimSpace(*password),
 	})
@@ -350,7 +357,7 @@ func cmdLogin(c *apiclient.Client, args []string) error {
 	}
 
 	fmt.Println("login successful")
-	fmt.Println("token:", resp.Token)
+	fmt.Println("token saved")
 
 	return nil
 }

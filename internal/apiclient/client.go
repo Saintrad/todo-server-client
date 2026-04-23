@@ -6,82 +6,93 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
-	"time"
 )
 
 type Client struct {
-	baseURL string
-	http    *http.Client
+    baseURL string
+    client  *http.Client
+
+    token   string       // JWT
+    tokenFile string     // path to ~/.todo/token
 }
 
+
 func New(baseURL string) *Client {
-	return &Client{
-		baseURL: strings.TrimRight(baseURL, "/"),
-		http: &http.Client{
-			Timeout: 10 * time.Second,
-		},
-	}
+    home, _ := os.UserHomeDir()
+    tokenPath := filepath.Join(home, ".todo", "token")
+
+    c := &Client{
+        baseURL:   baseURL,
+        client:    &http.Client{},
+        tokenFile: tokenPath,
+    }
+    c.LoadToken()
+    return c
 }
+
+func (c *Client) LoadToken() {
+    data, err := os.ReadFile(c.tokenFile)
+    if err == nil {
+        c.token = strings.TrimSpace(string(data))
+    }
+}
+
+func (c *Client) SaveToken() error {
+    os.MkdirAll(filepath.Dir(c.tokenFile), 0700)
+    return os.WriteFile(c.tokenFile, []byte(c.token), 0600)
+}
+
+func (c *Client) ClearToken() error {
+    c.token = ""
+    return os.Remove(c.tokenFile)
+}
+
+func (c *Client) SetToken(t string) error {
+    c.token = t
+    return c.SaveToken()
+}
+
 
 // do sends an HTTP request and decodes the JSON response.
 // It returns the status code and either a typed APIError or nil.
-func (c *Client) do(method, path string, reqBody any, respBody any) (int, error) {
-	var body io.Reader
-	if reqBody != nil {
-		b, err := json.Marshal(reqBody)
-		if err != nil {
-			return 0, err
-		}
-		body = bytes.NewReader(b)
-	}
+func (c *Client) do(method, path string, body any, respBody any) (*http.Response, error) {
+    var buf io.ReadWriter
+    if body != nil {
+        buf = new(bytes.Buffer)
+        if err := json.NewEncoder(buf).Encode(body); err != nil {
+            return nil, err
+        }
+    }
 
-	req, err := http.NewRequest(method, c.baseURL+path, body)
-	if err != nil {
-		return 0, err
-	}
+    req, err := http.NewRequest(method, c.baseURL+path, buf)
+    if err != nil {
+        return nil, err
+    }
 
-	// Standard headers
-	req.Header.Set("Accept", "application/json")
-	if reqBody != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
+    req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.http.Do(req)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
+    // Add token if available
+    if c.token != "" {
+        req.Header.Set("Authorization", "Bearer "+c.token)
+    }
 
-	raw, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return resp.StatusCode, err
-	}
+    resp, err := c.client.Do(req)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
 
-	// Non‑2xx → structured error
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		var apiErr APIError
-		if json.Unmarshal(raw, &apiErr) == nil && apiErr.Msg != "" {
-			apiErr.Status = resp.StatusCode
-			return resp.StatusCode, &apiErr
-		}
+    if resp.StatusCode >= 400 {
+        data, _ := io.ReadAll(resp.Body)
+        return resp, fmt.Errorf("api error: %s", data)
+    }
 
-		return resp.StatusCode, fmt.Errorf(
-			"http %d: %s",
-			resp.StatusCode,
-			strings.TrimSpace(string(raw)),
-		)
-	}
+    if respBody != nil {
+        return resp, json.NewDecoder(resp.Body).Decode(&respBody)
+    }
 
-	// No body expected
-	if respBody == nil || len(raw) == 0 {
-		return resp.StatusCode, nil
-	}
-
-	// Normal JSON decode
-	if err := json.Unmarshal(raw, respBody); err != nil {
-		return resp.StatusCode, err
-	}
-
-	return resp.StatusCode, nil
+    return resp, nil
 }
