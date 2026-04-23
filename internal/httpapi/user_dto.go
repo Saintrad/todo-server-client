@@ -1,6 +1,6 @@
 package httpapi
 
-import "github.com/Saintrad/todo-server-client/internal/user"
+import "github.com/Saintrad/todo-server-client/internal/domain/user"
 
 type UserRegisterRequest struct {
 	Name     string `json:"name" binding:"required"`

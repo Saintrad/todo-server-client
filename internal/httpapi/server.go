@@ -2,21 +2,22 @@ package httpapi
 
 import (
 	"github.com/Saintrad/todo-server-client/internal/auth"
-	"github.com/Saintrad/todo-server-client/internal/task"
-	"github.com/Saintrad/todo-server-client/internal/user"
+	taskservice "github.com/Saintrad/todo-server-client/internal/service/task"
+	userservice "github.com/Saintrad/todo-server-client/internal/service/user"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
 type Server struct {
-	userSvc *user.UserSvc
-	taskSvc *task.TaskSvc
+	userSvc *userservice.UserSvc
+	taskSvc *taskservice.TaskSvc
 	router  *gin.Engine
 	validator *validator.Validate
     jwt       *auth.JWTManager
 }
 
-func NewServer(u *user.UserSvc, t *task.TaskSvc, v *validator.Validate, jwt *auth.JWTManager) *Server {
+func NewServer(u *userservice.UserSvc, t *taskservice.TaskSvc, v *validator.Validate, jwt *auth.JWTManager) *Server {
 	r := gin.New()
 
 	r.Use(LoggerMiddleware())

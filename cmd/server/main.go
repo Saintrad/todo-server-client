@@ -6,25 +6,38 @@ import (
 
 	"github.com/Saintrad/todo-server-client/internal/auth"
 	"github.com/Saintrad/todo-server-client/internal/httpapi"
-	"github.com/Saintrad/todo-server-client/internal/task"
-	"github.com/Saintrad/todo-server-client/internal/user"
+	taskservice "github.com/Saintrad/todo-server-client/internal/service/task"
+	userservice "github.com/Saintrad/todo-server-client/internal/service/user"
+	"github.com/Saintrad/todo-server-client/internal/storage/postgres/db"
+	taskstorage "github.com/Saintrad/todo-server-client/internal/storage/postgres/task"
+	userstorage "github.com/Saintrad/todo-server-client/internal/storage/postgres/user"
 	"github.com/Saintrad/todo-server-client/internal/validation"
 )
 
-
 func main() {
-	taskRepo, err := task.NewFileTaskRepo("data/tasks.JSON")
+	// --------------------------
+	// Connect to PostgreSQL
+	// --------------------------
+	db, err := db.Connect(
+		"localhost",
+		"todo",
+		"todo",
+		"todo",
+		5432,
+	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connect to DB: %v", err)
 	}
 
-	userRepo, err := user.NewFileUserRepo("data/users.JSON")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// --------------------------
+	// Create repositories
+	// --------------------------
+	userRepo := userstorage.NewUserDBRepo(db)
+	taskRepo := taskstorage.NewTaskDBRepo(db)
 
-	t := task.NewTaskSvc(taskRepo)
-	u := user.NewUserSvc(userRepo)
+	u := userservice.NewUserSvc(userRepo)
+	t := taskservice.NewTaskSvc(taskRepo)
+
 	v := validation.New()
 	j := auth.NewJWTManager("secret123", time.Hour*24)
 	api := httpapi.NewServer(u, t, v, j)

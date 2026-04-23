@@ -15,13 +15,14 @@ func (s *Server) createTaskHandler(c *gin.Context) {
 		return
 	}
 
-	task, cErr := s.taskSvc.CreateTask(req.ToDomain())
+	userID := c.GetInt(ContextKeyUserID)
+	task, cErr := s.taskSvc.CreateTask(userID, req.ToDomain())
 	if cErr != nil {
 		WriteError(c, cErr)
 		return
 	}
 
-	c.JSON(http.StatusCreated, ToTaskResponse(task))
+	c.JSON(http.StatusCreated, ToTaskResponse(*task))
 }
 
 func (s *Server) getByIdHandler(c *gin.Context) {
@@ -35,13 +36,15 @@ func (s *Server) getByIdHandler(c *gin.Context) {
 		return
 	}
 
-	task, err := s.taskSvc.GetByID(id)
+	userID := c.GetInt(ContextKeyUserID) 
+
+	task, err := s.taskSvc.GetByID(userID, id)
 	if err != nil {
 		WriteError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, ToTaskResponse(task))
+	c.JSON(http.StatusOK, ToTaskResponse(*task))
 }
 
 func (s *Server) updateTaskHandler(c *gin.Context) {
@@ -57,7 +60,9 @@ func (s *Server) updateTaskHandler(c *gin.Context) {
 		WriteError(c, richerror.InvalidInput("invalid update payload", err))
 	}
 
-	task, uErr := s.taskSvc.UpdateTask(id, req.ToDomain())
+	userID := c.GetInt(ContextKeyUserID)
+
+	task, uErr := s.taskSvc.UpdateTask(userID, id, req.ToDomain())
 	if uErr != nil {
 		WriteError(c, uErr)
 		return
@@ -67,7 +72,9 @@ func (s *Server) updateTaskHandler(c *gin.Context) {
 }
 
 func (s *Server) listTaskHandler(c *gin.Context) {
-	tasks, err := s.taskSvc.ListTask()
+
+	userID := c.GetInt(ContextKeyUserID)
+	tasks, err := s.taskSvc.ListTask(userID)
 	if err != nil {
 		WriteError(c, err)
 		return
@@ -88,11 +95,13 @@ func (s *Server) deleteTaskHandler(c *gin.Context) {
 		return
 	}
 
-	task, dErr := s.taskSvc.Delete(id)
+	userID := c.GetInt(ContextKeyUserID)
+
+	dErr := s.taskSvc.Delete(userID, id)
 	if dErr != nil {
 		WriteError(c, dErr)
 		return
 	}
 
-	c.JSON(http.StatusNoContent, task)
+	c.JSON(http.StatusNoContent, nil)
 }

@@ -3,7 +3,7 @@ package httpapi
 import (
 	"time"
 
-	"github.com/Saintrad/todo-server-client/internal/task"
+	"github.com/Saintrad/todo-server-client/internal/domain/task"
 )
 
 // POST /v1/tasks

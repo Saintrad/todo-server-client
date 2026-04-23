@@ -1,10 +1,12 @@
 package task
+
 import (
 	"time"
 )
 
 type Task struct {
-	ID        int
+	ID        int `gorm:"primaryKey;autoIncrement"`
+	UserID    int `gorm:"index"`
 	Title     string
 	Category  *string
 	DueDate   *time.Time
