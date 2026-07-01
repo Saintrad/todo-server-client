@@ -1,8 +1,8 @@
-# Todo Server + CLI (Go)
+# CLI Todo App
 
 A simple todo application with:
-- REST API server (net/http)
-- File-based persistence
+- REST API server
+- MongoDB persistence
 - CLI client
 
 ## Run server
