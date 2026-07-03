@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/Saintrad/todo-server-client/internal/auth"
@@ -63,5 +67,44 @@ func main() {
 
 	log.Println("Listening on", addr)
 
-	log.Fatal(api.Start(addr))
-}
+	go func() {
+		if err := api.Start(addr); err != nil {
+			log.Printf("server stopped: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(
+		quit,
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+
+	<-quit
+
+	log.Println("Shutting down...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := api.Shutdown(ctx); err != nil {
+		log.Printf("server shutdown error: %v", err)
+	}
+
+	log.Println("HTTP server stopped")
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Printf("failed to get sql.DB: %v", err)
+	} else {
+		log.Println("Closing database...")
+		if err := sqlDB.Close(); err != nil {
+			log.Printf("failed to close database: %v", err)
+		}
+		log.Println("Database closed")
+	}
+
+	log.Println("Shutdown complete")
+
+	}

@@ -23,7 +23,11 @@ services:
       - .env
     depends_on:
       - postgres
-
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:

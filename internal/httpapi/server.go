@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Saintrad/todo-server-client/internal/auth"
@@ -16,6 +17,7 @@ type Server struct {
 	taskSvc *taskservice.TaskSvc
 	router  *gin.Engine
 	validator *validator.Validate
+    server *http.Server
     jwt       *auth.JWTManager
 }
 
@@ -37,7 +39,21 @@ func (s *Server) healthHandler(c *gin.Context) {
 }
 
 func (s *Server) Start(addr string) error {
-	return s.router.Run(addr)
+    s.server = &http.Server{
+        Addr:    addr,
+        Handler: s.router,
+    }
+
+    err := s.server.ListenAndServe()
+    if err != nil && err != http.ErrServerClosed {
+        return err
+    }
+
+    return nil
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+    return s.server.Shutdown(ctx)
 }
 
 func (s *Server) registerRoutes() {
