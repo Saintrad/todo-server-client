@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	baseURL := envOrDefault("TODO_BASE_URL", "http://localhost:8080")
+	baseURL := envOrDefault("TODO_BASE_URL", "https://localhost:8080")
 
 	if len(os.Args) < 2 {
 		usage()
