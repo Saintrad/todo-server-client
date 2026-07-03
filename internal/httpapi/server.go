@@ -1,6 +1,8 @@
 package httpapi
 
 import (
+	"net/http"
+
 	"github.com/Saintrad/todo-server-client/internal/auth"
 	taskservice "github.com/Saintrad/todo-server-client/internal/service/task"
 	userservice "github.com/Saintrad/todo-server-client/internal/service/user"
@@ -28,12 +30,20 @@ func NewServer(u *userservice.UserSvc, t *taskservice.TaskSvc, v *validator.Vali
 	return s
 }
 
+func (s *Server) healthHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+	})
+}
+
 func (s *Server) Start(addr string) error {
 	return s.router.Run(addr)
 }
 
 func (s *Server) registerRoutes() {
 	authMW := NewAuthMiddleware(s.jwt)
+
+    s.router.GET("/health", s.healthHandler)
 
     // =====================
     // Protected routes
@@ -54,6 +64,6 @@ func (s *Server) registerRoutes() {
     users := s.router.Group("/v1/users")
     {
         users.POST("", s.userRegisterHandler)
-        users.POST("/login", s.userLoginHandler) // if you have a login handler
+        users.POST("/login", s.userLoginHandler)
     }
 }

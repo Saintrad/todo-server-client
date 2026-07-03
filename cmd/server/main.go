@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Saintrad/todo-server-client/internal/auth"
+	"github.com/Saintrad/todo-server-client/internal/config"
 	"github.com/Saintrad/todo-server-client/internal/httpapi"
 	taskservice "github.com/Saintrad/todo-server-client/internal/service/task"
 	userservice "github.com/Saintrad/todo-server-client/internal/service/user"
@@ -16,14 +17,19 @@ import (
 
 func main() {
 	// --------------------------
+	// Load Configurations
+	// --------------------------
+	cfg := config.Load()
+	
+	// --------------------------
 	// Connect to PostgreSQL
 	// --------------------------
 	db, err := db.Connect(
-		"localhost",
-		"todo",
-		"todo",
-		"todo",
-		5432,
+		cfg.DBHost,
+		cfg.DBUser,
+		cfg.DBPass,
+		cfg.DBName,
+		cfg.DBPort,
 	)
 	if err != nil {
 		log.Fatalf("failed to connect to DB: %v", err)
@@ -35,13 +41,27 @@ func main() {
 	userRepo := userstorage.NewUserDBRepo(db)
 	taskRepo := taskstorage.NewTaskDBRepo(db)
 
+	// --------------------------
+	// Create services
+	// --------------------------
 	u := userservice.NewUserSvc(userRepo)
 	t := taskservice.NewTaskSvc(taskRepo)
 
+	// --------------------------
+	// Create validator
+	// --------------------------
 	v := validation.New()
-	j := auth.NewJWTManager("secret123", time.Hour*24)
+
+	// --------------------------
+	// Create authenticator
+	// --------------------------
+	j := auth.NewJWTManager(cfg.JWTSecret, time.Hour*24)
+	
 	api := httpapi.NewServer(u, t, v, j)
 
-	log.Println("listening on :8080")
-	log.Fatal(api.Start(":8080"))
+	addr := ":" + cfg.Port
+
+	log.Println("Listening on", addr)
+
+	log.Fatal(api.Start(addr))
 }
