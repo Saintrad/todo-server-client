@@ -73,7 +73,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `Usage:
+	fmt.Fprint(os.Stderr, `Usage:
   client list
 
   client create --title "..." [--category "work"] [--due "2026-01-10"]
