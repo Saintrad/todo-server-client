@@ -6,8 +6,8 @@ services:
     container_name: todo_postgres
     restart: always
     environment:
-      POSTGRES_USER: todo
-      POSTGRES_PASSWORD: todo
+      POSTGRES_USER: todo_app
+      POSTGRES_PASSWORD: 0MMD65ZnSy5/N49I
       POSTGRES_DB: todo
     ports:
       - "5432:5432"
