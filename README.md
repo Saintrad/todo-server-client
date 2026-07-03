@@ -2,7 +2,7 @@
 
 A simple todo application with:
 - REST API server
-- MongoDB persistence
+- Postgres persistence
 - CLI client
 
 ## Run server
